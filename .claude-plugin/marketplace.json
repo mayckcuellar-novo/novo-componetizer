@@ -1,0 +1,17 @@
+{
+  "name": "novo-figma",
+  "owner": {
+    "name": "Novo Design"
+  },
+  "metadata": {
+    "description": "Novo design-tooling plugins for Claude Code.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "figma-componetizer",
+      "source": "./figma-componetizer",
+      "description": "Conform a Figma frame to the Novo Design System — bind DS text styles, color variables, and swap raw layers for DS component instances, purely in Figma."
+    }
+  ]
+}
