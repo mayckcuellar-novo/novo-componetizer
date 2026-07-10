@@ -10,7 +10,7 @@ Code fetches, installs, and enables the skill for you.
 ## Install (in Claude Code)
 
 ```
-/plugin marketplace add <your-github-username>/figma-componetizer
+/plugin marketplace add mayckcuellar-novo/novo-componetizer
 /plugin install figma-componetizer@novo-figma
 ```
 
@@ -20,9 +20,9 @@ That's it — the `figma-componetizer` skill is now available. Update later with
 /plugin marketplace update novo-figma
 ```
 
-> Replace `<your-github-username>` with the GitHub owner this repo lives under. The
-> marketplace is named `novo-figma` (see `.claude-plugin/marketplace.json`), which is why
-> the install target is `figma-componetizer@novo-figma`.
+> The marketplace is named `novo-figma` (see `.claude-plugin/marketplace.json`), which is
+> why the install target is `figma-componetizer@novo-figma` even though the repo is
+> `novo-componetizer`.
 
 ## Prerequisites (the plugin can't provide these for you)
 
