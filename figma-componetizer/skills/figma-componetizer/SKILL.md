@@ -33,7 +33,7 @@ The DS keys/recipes here drift when the Novo DS changes, so on the **first** com
 in a conversation (skip on subsequent ones), do a quick, non-blocking version check:
 
 1. `WebFetch` `https://raw.githubusercontent.com/mayckcuellar-novo/novo-componetizer/main/figma-componetizer/.claude-plugin/plugin.json` and read its `version`.
-2. Compare it to **this skill's version: `1.3.0`** (kept in sync with `plugin.json` at every release).
+2. Compare it to **this skill's version: `1.3.1`** (kept in sync with `plugin.json` at every release).
 3. If the remote version is **higher**, tell the user once, in one line, then proceed anyway:
    > ℹ️ A newer figma-componetizer is available (v1.2.0 → v`X.Y.Z`). Run `/plugin marketplace update novo-figma` in the Claude Code CLI to update.
 4. If the fetch fails, times out, or versions match — say nothing and proceed with the bundled version.

@@ -654,3 +654,26 @@ b.setProperties({ "Copy#366:0": label, "[L] Icon Show#352:0": false, "[R] Icon S
 **Existing instances auto-migrated** on the library update (old Size=Default → Size=Regular, filled→
 Variant=filled), so previously-conformed frames did NOT break — no rework needed. `button-icon`,
 `button-coin*` remain separate sets (unaffected).
+
+## Circular icon buttons — button-coin (outlined!) vs button-icon; + INSTANCE_SWAP gotcha
+
+Small circular icon-only buttons come in distinct DS sets — pick by look:
+- **`button-coin`** (set `bdd68cde9a618f777184b6a06e40e8bfa26dfe48`) — has `Variant`: `filled` / **`outlined`** /
+  `neutral` / `inverse` / `destructive`. **The outlined circle** (e.g. card edit-pencil / delete-trash coin
+  buttons) = `Variant=outlined`. This is the usual match for a bordered circular icon button — NOT button-icon.
+- **`button-coin-basic`** (`1102340085b9cb516f6811c1304ecdb726d571e7`) — `basic`/`neutral`/`inverse`/`destructive`.
+- **`button-icon`** (`a76d6d765048bb81228420c6a5332535a702cbcc`) — `brand`/`neutral`/`inverse`/`destructive`, NO
+  outlined variant; use for borderless icon buttons.
+- **`button-coin-fab`** (`ede701ca1f5230a6b22805a3d83f830ddb728140`) — floating action button.
+All share `Size` Regular/Small, `State`, and an `Icon#…` INSTANCE_SWAP. Set the glyph via that Icon prop.
+
+**INSTANCE_SWAP gotcha (applies to button `[L]/[R] Icon#…`, coin/icon `Icon#…`, field leading icons):**
+the property value must be an **imported component's node `id`**, NOT its library key. Passing a key throws
+"Property value is incompatible with component property type". Do:
+```js
+const ic = await figma.importComponentByKeyAsync(ICON_KEY);
+inst.setProperties({ [iconSwapKey]: ic.id });   // ic.id, not ICON_KEY
+```
+
+Icon keys picked up here: `plus` `fc6d9d0f8a398714c7bda1daf24cf5fb964a4aae`, `gift`
+`1d0b4ca41c11f0c9830f3e8e666eb8316c527ec5`.

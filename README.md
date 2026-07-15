@@ -80,6 +80,13 @@ figma-componetizer/                    ← the plugin
 Versions track `figma-componetizer/.claude-plugin/plugin.json`. Update to the latest with
 `/plugin marketplace update novo-figma`.
 
+### 1.3.1 — 2026-07-15
+
+- **Circular icon buttons** — distinguish `button-coin` (has an **outlined** variant — bordered
+  edit/delete coin buttons) from `button-icon` (borderless); plus `button-coin-basic` / `-fab`.
+- **INSTANCE_SWAP gotcha** — icon-swap props (button `[L]/[R] Icon`, coin/icon `Icon`, field leading
+  icons) take an **imported component's node `id`**, not its library key. Added `plus` / `gift` keys.
+
 ### 1.3.0 — 2026-07-15
 
 - **Buttons merged into one set** — the Novo DS collapsed the separate button sets
