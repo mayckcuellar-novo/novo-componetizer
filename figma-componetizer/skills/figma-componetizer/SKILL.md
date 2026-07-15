@@ -158,6 +158,21 @@ pages have **different** node ids; confirm you're on the intended frame.
      while staying faithful to the original; leave original valid micro-dims (2/4/6/10/12) alone.
 9. **Verify.** Screenshot after each phase. For tall scrollable content, use `get_screenshot` with a larger
    `maxDimension` (isolated `node.screenshot()` on deep nodes can render blank — not a real error).
+10. **Nomenclature & structure hygiene** (always, on every conform). See the cheatsheet sections
+    "Layer nomenclature convention", "Structure: which absolutes to FIX vs LEAVE", and "Close-X placement".
+    Key points:
+    - **Rename junk auto-names** (`Frame <bignumber>`, `Frame <n>`) to structured role-based **PascalCase**
+      (file convention, no spaces): `ModalHeader`, `ModalBody`, `<Purpose>Section`, `OptionRow`, `OptionText`,
+      `<Purpose>Field`, `CloseIcon`, `<Name>Icon`, generic → `Container`. Detect with `/^Frame\s*\d{3,}$/i`;
+      **skip nodes inside an INSTANCE** (component-internal, can't rename without detaching). Metadata-only,
+      zero visual change. Also rename generic `Text`/`Container` holders to their role when clear.
+    - **Absolutes**: FIX only real shell errors (floating `AppHeader`/`SideBarTabs` over placeholder slots,
+      absolute `NewProtectedApp`, absolute titles). LEAVE legit floats: scrims (only if actually visible —
+      remove a scrim fully occluded by an opaque full-bleed modal), overlay drawer/modal panels, pinned
+      close-X, and absolutes INSIDE imported DS components (negative-margin/transform techniques).
+    - **Close-X**: if the modal has a `ModalHeader` title row, move the X in-flow to the end of that row
+      (title `layoutGrow=1`, header `paddingRight` symmetric); float (ABSOLUTE corner-pinned) ONLY when there's
+      no header structure to hold it. Rename it `CloseIcon`.
 
 ## Recovery & re-entry (when the user has edited/reverted)
 

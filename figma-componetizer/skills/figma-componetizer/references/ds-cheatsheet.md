@@ -150,6 +150,14 @@ raw input displayed:
   toggling to false to "clean up" deletes a native affordance (the eye). Same for `Clear Icon Show`.
   Text-field's default is already false, so leaving it untouched is correct.
 
+**GOTCHA — swapping a select's trailing caret + × collapses their spacing.** When a rich select is
+left tokenized (coin/value kept) and only its trailing glyphs are swapped, replacing each raw glyph
+with a DS icon at the *old frame's* width often reseats it wrong — a 24px DS `x` overflows its hugging
+wrapper and overlaps the caret. Fix: size BOTH trailing icons the same (16px — the DS trailing-icon
+convention), let each wrapper hug (`primaryAxisSizingMode='AUTO'`), and give their shared container a
+real `itemSpacing` (~8). After any trailing-icon swap, re-measure the caret's right edge vs the ×'s
+left edge and confirm a positive gap — don't trust that the swap preserved layout.
+
 **RULE — standalone blue text-links MUST become `button-text` instances.** Any standalone blue
 (typography/info) text that acts as an action/link ("See More", "Forgot your password?", "Get Started",
 "Pay a bill", "See Payment History"…) is a button — swap it for the `button-text` set
@@ -197,6 +205,83 @@ original had them.
 **Hide the helper/support ROW** (parent of the `Support text` layer) — it reserves ~18px below the field.
 Set `layoutSizingHorizontal='FILL'` (or fixed width for narrow fields). Bundles label+field+helper (~h96
 before hiding the helper row → ~h78 after).
+
+**GOTCHA — the `Active-*` variants BUNDLE an open menu** (`menu-single-select`, ~336px, 7 placeholder
+rows of avatar+Label+Value). So an Active selector instance is ~396px tall, not ~78px. Two cases:
+(1) the screen's open menu genuinely matches (avatar + label + value rows) → keep it and populate;
+(2) the screen's menu is a different pattern (e.g. an "Add Recipient" action + plain name rows) →
+PREFER populating the bundled menu rather than hiding it. The `menu-single-select` is a column of
+`menu-list-item` instances (usually 7), each with toggles `Avatar show`, `Value show`, `Label 2 Show`,
+`[L] Icon show`, `Checkbox show`, `Switch show`, `Divider show` and a `Label` text layer. To match a plain
+recipient list: per active row turn Value/Label 2 off and set `Label`; HIDE the `Avatar`/`AA`/`crown`
+sub-layers DIRECTLY (the `Avatar show` prop often doesn't apply — visibility override does); set extra rows
+`visible=false`; put an action icon (e.g. `user-plus`) on the top row by swapping its left icon layer; then
+DELETE the raw menu frames. Only fall back to hiding the whole `menu-single-select` if the row pattern truly
+can't be matched. `menu-action` is a big pre-composed menu, not a per-row. `Active-no selection` = open
+trigger, `Resting-*` = closed. NOTE: full-frame screenshots of a frame containing a freshly-edited nested
+menu instance render STALE — screenshot the selector/menu node directly to verify.
+
+## RULE — check the PARENT for sibling overlay controls (close X, scrim)
+
+A modal/drawer's **close X is often a SIBLING of the given frame, not a child** — it lives in the parent
+`Container` positioned over the modal's top-right (and a scrim overlay may be another sibling). If you scope
+the pass to the node URL you were handed (a modal *body*), you will silently miss it. So at the START of a
+modal/drawer pass: look at `root.parent.children`; conform any sibling `Icon`/`Text`-wrapped close glyph
+and treat a full-bleed sibling rect as the scrim (leave/tokenize). Applies to the
+plugin too — selecting the modal body misses the sibling X; select the parent container, or the pass must
+walk up one level. Verify a modal by screenshotting the PARENT container, not just the given frame.
+
+## RULE — NO absolute positioning anywhere; the whole frame is nested auto-layout
+
+Zero `layoutPositioning='ABSOLUTE'` nodes in a conformed frame (outside the nav instance). At the end of a
+pass, audit: `root.findAll(n => n.layoutPositioning==='ABSOLUTE')` must be empty. Common offenders and fixes:
+- **"Floating content over a skeleton" mock pattern.** Many pages have an auto-layout skeleton
+  (`Body > Main Content > NewProtectedApp` with a `Placeholder for AppHeader` + an empty `Section`) AND the
+  real content + `AppHeader` as ABSOLUTE siblings floating on top. Fix: reparent the real `AppHeader` and the
+  real content INTO the skeleton's auto-layout `NewProtectedApp` (insertChild 0 = header, 1 = content), set
+  each `layoutPositioning='AUTO'` + `layoutSizingHorizontal='FILL'`, then DELETE the empty placeholder/Section.
+  The result is ONE `NewProtectedApp` (auto-layout, HUG height) containing `[AppHeader, content]`. There must
+  not be a duplicate absolute `NewProtectedApp`. (Verify which branch is live first — trace a known conformed
+  node up to see whether the skeleton's Section or the absolute overlay actually holds the content.)
+- **AppHeader as a floating overlay** → make it the FIRST in-flow child of the page's vertical auto-layout
+  (`HORIZONTAL`, `SPACE_BETWEEN`, `counterAxisAlignItems=CENTER`, FILL width). Never leave it absolute.
+- **A plain (`layoutMode=NONE`) content frame** whose children are manually positioned → set it to
+  `VERTICAL` auto-layout, HUG height, FILL width so children flow (their old x/y offsets are ignored).
+- **Centered header title (Back / title / X)** → one HORIZONTAL row: left item (Back) fixed/HUG left-aligned,
+  title in-flow HUG in the MIDDLE, right item (X) fixed/HUG; put equal-FILL spacers OR make both side
+  containers FILL so the HUG title lands centered. Never absolutely-position the title.
+
+## RULE — never create a floating (absolute) node; fit it into the auto-layout
+
+When placing a close X (or any element), **put it INTO the relevant auto-layout, not as an
+`layoutPositioning='ABSOLUTE'` sibling.** For a modal close X the canonical structure is: make the header
+title row (`Header4`) HORIZONTAL + `layoutSizingHorizontal='FILL'` + `counterAxisAlignItems='CENTER'`, give
+the title `layoutGrow=1` (it fills and pushes the X right), then `appendChild` the X's 24px wrapper into that
+row with `layoutPositioning='AUTO'`, `layoutGrow=0`, `layoutSizingHorizontal='FIXED'`. Restore symmetric
+header padding (don't leave an asymmetric padR you added to clear a floating X). Floating frames are only
+acceptable when nothing in the layout can host them.
+
+## RULE — preserve margins/spacing; let height hug, don't sacrifice padding
+
+If a container has a **FIXED height** and swapped content grew (fields with counters/support, DS instances
+taller than raw), the extra height eats the bottom padding/margin. Wrong. Set the modal body and its content
+container to **`primaryAxisSizingMode='AUTO'` (hug)** so the frame grows and the bottom margin (e.g. padB=24)
+is preserved. **Height changing is fine; margins and gaps are not** — spacing tokens are load-bearing design.
+After field/instance swaps in a fixed-height container, always set it to hug.
+
+## Switch / toggle
+
+The on/off **toggle** is the `Switch` SET `190758e4461804c8b6357f69196eed2e4aab80a7` — variants
+`Marked=Off|On × State=Resting|Hover|Focus|Disabled`. Swap a raw toggle to `Marked=On, State=Resting`
+(or Off). **Do NOT confuse it with the `switch` ICON** (`69c23bf8…`, the swap/transfer arrows glyph) —
+searching "switch" surfaces the icon first; search "toggle" for the real control.
+
+## Character counters on fields
+
+A field showing an "N / M" counter (e.g. `7 / 30`): on the `Parent Input` set `Character Count Show#…=true`
+and `Bottom info#…=true`, then set the `0/0` TEXT layer's characters to the count ("7 / 30"). GOTCHA — with
+no support text beside it the counter collapses bottom-LEFT; set its bottom row's `primaryAxisAlignItems='MAX'`
+(and the counter's `textAlignHorizontal='RIGHT'`) to keep it bottom-right as designs expect.
 
 ## Checkbox
 
@@ -325,3 +410,211 @@ return styles;
 // resolve an instance's source component (foreign-DS check)
 const m = await inst.getMainComponentAsync(); // m.name, m.key, m.parent (the SET)
 ```
+
+## Structure: which absolutes to FIX vs LEAVE (critical — don't over-correct)
+
+The "no absolute positioning" rule targets **broken page-shell scaffolding only**, NOT every
+`layoutPositioning==="ABSOLUTE"` node. Auditing by raw absolute count is misleading — a healthy
+drawer/modal frame legitimately has 9–18 absolutes.
+
+**FIX (real structural errors — reparent into the auto-layout skeleton):**
+- A floating `AppHeader` that is an ABSOLUTE *sibling of `Body`* while `Body/Main Content/NewProtectedApp`
+  contains an empty `Placeholder for AppHeader` slot → move header into NewProtectedApp at the placeholder's
+  index, `layoutPositioning=AUTO`, `layoutSizingHorizontal=FILL`, keep height FIXED; delete the placeholder.
+- A floating `SideBarTabs` (nav) that is an ABSOLUTE sibling of `Body` while `Main Content` has an empty
+  `Placeholder for Container` slot → move nav in at that index, AUTO, `layoutSizingHorizontal=FIXED` (keep
+  224 width), `layoutSizingVertical=FILL`; delete the placeholder. (This is the one time reparenting the nav
+  is correct — the placeholder footprint is identical, so it's a visual no-op. Never restyle/rebuild the nav.)
+- An ABSOLUTE second `NewProtectedApp` content layer over a skeleton NewProtectedApp (early Payments pattern).
+- Absolute Header3/title text inside a row → center via the row's auto-layout instead.
+Always verify with a before/after screenshot — these reparents must be pixel-identical.
+
+**LEAVE (legitimate — never touch):**
+- **Scrim/dimmer**: empty `Container` ~1440×902 at 0,0. It MUST float over the dashboard.
+- **Overlay panels**: the drawer (~512 wide) or modal (~640 wide) `Container`. Overlays MUST float.
+- **Pinned close-X**: a 24×24 `Text`/`NovoLink` icon pinned top-right of a panel.
+- **Absolutes INSIDE imported DS components/illustrations** — e.g. `RecommendationsLayout` "Link (negative
+  margin)", `IntegrationsWidgetInner` "Container (transform)", `ReferAFriend` illustration pieces,
+  `TransactionDetails` inner containers. These use absolute/negative-margin/transform as the component's own
+  construction. Editing them breaks the component AND diverges from the DS — forbidden.
+
+**Audit routine:** flag a frame as needing a fix ONLY if it has a floating `AppHeader`/`SideBarTabs` sibling,
+an absolute `NewProtectedApp`, or a `Placeholder for …` slot. Top-level scrim+panel absolutes with no
+placeholder = already correct, skip. (Verified across all Novo Mocks drawer/modal/dashboard frames: the only
+real offenders were the page-shell frames + the PayPal modal 268:18598.)
+
+## Nomenclature & dead-node cleanup (post-conform hygiene)
+
+**Naming:** Novo Mocks names meaningful elements in **PascalCase, no spaces** (`AppDetailsModal`,
+`RevenueAppDetails`, `ModalHeader`, `NewProtectedApp`, `SideBarTabs`, `NovoLink`). When conforming, rename
+generic auto-names (`Text`, `Container`, `Frame N`) to their semantic role in that same format once the
+function is clear — e.g. a top-right close affordance → `CloseIcon` (NOT "Text", "close", or "close icon").
+Match the file's existing casing convention; don't invent a new one (no spaces, no kebab, no snake).
+
+**Scrim is only "legit" if actually visible.** A dimmer/scrim `Container` (empty, black fill low opacity,
+~viewport size) is a legitimate overlay ONLY when a *centered* dialog floats above a visible dimmed
+background. If the modal on top is **full-bleed + opaque** (covers the whole viewport), the scrim is fully
+occluded and serves no purpose — remove it. Red flags for a dead scrim: `childCount:0`, no `reactions`
+(no click-to-dismiss), and an opaque sibling on top that covers it. Deleting it is zero visual change.
+
+**Pinned close-X floats.** A close X that isn't part of the content flow should be an ABSOLUTE child of the
+modal frame, `constraints {horizontal:"MAX", vertical:"MIN"}`, positioned in the corner — NOT held in place
+by a dedicated layout column/gutter. Collapse any "3-column split" (empty gutter + content + X-column) into a
+single content frame (content centered via `counterAxisAlignItems:"CENTER"`) plus the floating X. Floating is
+correct here precisely because it *preserves* frame integrity (opposite of a floating AppHeader, which breaks
+it). Verified on 268:18598 AppDetailsModal.
+
+## Dropdowns / selects → DS selector (Resting-selection recipe)
+
+A raw dropdown = label row (`Text` label + `*`/info) above a box (`Text` value + `chevron-down`). These are
+FREQUENTLY MISSED because they're plain frames, not instances — always swap them to the DS **selector**
+(set key `7f713cfcfd40d522700f446233968dc9222a22bf`).
+
+Anatomy: the selector wraps a nested **`Parent Input`** instance (same input engine as text-field). Top level
+exposes only `State` (variant: `Resting-selection` / `Resting-no selection` / `Active-selection` /
+`Active-no selection`). Everything else is set on the `Parent Input` child via `setProperties`:
+- `Requirement Show#914:0`, `[i] Info Show#903:21`, `Support Text Show#903:22`, `Character Count Show#903:25`,
+  `Bottom info#8576:0`, `Clear Icon Show#903:31`, `[$] Prefix Show#903:27`, `[%] Suffix Show#903:26`,
+  `Country Show#903:30`, `[R] Icon Show#903:23` (trailing chevron — keep true), `Title Show#1369:0`,
+  `Input` (VARIANT `Filled`/`Placeholder`).
+
+Text layers (find by name, `loadFontAsync` then set `.characters`): `Title` (label), `Input copy` (the
+selected value, shown when Input=Filled), `Support text`, `(Optional)` (the requirement marker).
+
+For a **closed dropdown showing a value** (most common in mocks): variant `State=Resting-selection`, on
+Parent Input set `Bottom info=false` (drops the support/counter row → compact label+box), `Support Text Show`
++ `Character Count Show` + prefix/suffix/country/clear = false, `[R] Icon Show=true`. Set `Title`=label,
+`Input copy`=value.
+
+**Required "*" gotcha:** the DS requirement element is a plain TEXT reading `(Optional)` (DS marks *optional*
+fields). Mocks usually show a required `*`. To preserve parity: `Requirement Show=true`, then override the
+`(Optional)` text to `*` AND copy the original asterisk's `fills` onto it for color parity.
+
+Placement: capture raw node's parent+index, `insertChild(index, selector)`, `layoutSizingHorizontal="FILL"`,
+then remove the raw node. Height lands ~78 vs raw ~74 — auto-layout absorbs it. Verified on 293:3115
+(Delivery details: Method + Pay/transfer to). This same dropdown pattern recurs across sibling Payments/flow
+frames — sweep for raw label+value+chevron-down frames.
+
+## Close-X placement — REFINED (header-in-flow vs float, decided by structure)
+
+The deciding factor for a modal/drawer close X is **whether there's a ModalHeader title row to hold it**:
+
+- **Modal HAS a `ModalHeader` with a title row** (the standard case) → the X belongs **in-flow at the end of
+  the title row** (matches DS reference: `ModalHeader › Header5(HORIZONTAL) › [title (grows), X]`). Do NOT
+  float it. Recipe (verified across 11 Payments modals): header is VERTICAL with one FILL-width title-row
+  child; set title row `layoutMode=HORIZONTAL`, `counterAxisAlignItems=CENTER`, `itemSpacing=8`; set the
+  title (first child) `layoutGrow=1` so it pushes the X right; reparent the floating X into the title row,
+  `layoutPositioning=AUTO`; rename it `CloseIcon`. **Padding gotcha:** these headers ship asymmetric
+  `paddingLeft:24 / paddingRight:40` while the floating X sat at 24px from the edge — set
+  `paddingRight=24` so the in-flow X keeps its exact original position (and padding becomes symmetric).
+- **Full-bleed / opaque modal with NO header structure** (e.g. PayPal AppDetailsModal 268:18598) → floating
+  the X (ABSOLUTE, corner-pinned `constraints {horizontal:MAX, vertical:MIN}`) is correct, because there's no
+  in-flow row to hold it and forcing a layout column would split the frame.
+
+Rule of thumb: float ONLY when there's no structure to absorb it; whenever a header/title row exists, put the
+X in-flow there. Either way, rename the container `CloseIcon` (PascalCase, per file convention).
+Discovery: scan a frame for an ABSOLUTE ≤40px node containing an `x`/close instance whose modal ancestor has
+a `ModalHeader` child — those are the ones to move in-flow.
+
+## text-field & text-area component recipes (raw input → DS)
+
+Keys: **text-field** `7e78a5f0c1ccc8e0d6409ea07d9b453c1173f7b4` (standalone component), **text-area**
+`f8dd60c194f5ae85e4216c4a6da1f1b49a40f1f5`. Both wrap the same nested **`Parent Input`** as the selector, so
+config is identical: set toggles on the Parent Input child (`Title Show#1369:0`, `Requirement Show#914:0`,
+`[i] Info Show#903:21`, `Support Text Show#903:22`, `Character Count Show#903:25`, `Bottom info#8576:0`,
+`Country Show#903:30`, `[R] Icon Show#903:23`, `[$]/[%]`, `Clear Icon Show#903:31`). Text layers by name:
+`Title`, `Placeholder copy`, `Support text`, `(Optional)`, `0/0` (counter).
+
+- **`Input` variant only has `Empty` / `Filled`** (NOT "Placeholder" — that value errors). Use `Empty` to show
+  the placeholder; write the placeholder into `Placeholder copy`. Use `Filled` + `Input copy` for a value.
+- **Character counter** needs BOTH `Character Count Show=true` AND `Bottom info=true` (Bottom info gates the
+  whole bottom Frame 7 row). Set the `0/0` text (e.g. `0/ 250`); right-align via Frame 7
+  `primaryAxisAlignItems="MAX"` when support text is hidden.
+- **Leading icon inside the input** (e.g. email field with a leading info-circle): `Country Show=true`, then in
+  the country slot (`Frame 4 › Frame 1`) hide the `🇺🇸` Emoji + `Vertical Divider`, and `swapComponent` the
+  `angle-down` instance to the target icon. **GOTCHA:** there are TWO icon nodes named `info-circle` — the
+  hidden Title-Section one (from `[i] Info Show`) and the visible country-slot one. `findAll` returns the
+  Title-Section one FIRST; filter by `visible` + parent chain containing `Frame 1`/`Frame 4` (NOT
+  `Title Section`) to grab the right one. Color it by binding its vector fill to `color/icon/info`
+  (`8ac7e4e882224d9ca9cb08f0f5fe76d4a641e831`). The country-slot icon is locked to 24px (nested instance —
+  `resize` won't stick); accept it or rescale.
+- **text-area default height** (~96) is shorter than a tall mock box; set `layoutSizingVertical="FIXED"` +
+  `resize` to match (e.g. ~142 incl. counter row).
+- **Right-aligned label helper** (e.g. "Only visible to you" top-right of the label): the DS field has NO
+  top-right helper slot (support text is bottom-left only). To keep mock parity, preserve the original label
+  row and set the field's `Title Show=false`, swapping only the input body. Otherwise it moves to bottom-left.
+
+## Layer nomenclature convention (rename junk auto-names on every conform)
+
+Figma auto-names unlabeled frames `Frame <bignumber>` (e.g. `Frame 2087330580`) and `Frame <n>`. As part of
+every conform/componentize pass, **rename renamable junk frames to structured, role-based PascalCase names**
+(file convention: PascalCase, no spaces). Derive the name from the frame's role/content:
+
+- Modal panel → `<Purpose>Modal` (e.g. `TransferFundsModal`) or `ModalContent`
+- Modal title bar → `ModalHeader`; title+close row → `HeaderRow`; title cluster → `Title` / `TitleDropdown`
+- Modal body → `ModalBody`; descriptive blurb → `Description`
+- A labeled section → `<Purpose>Section` (e.g. `FromAnotherBankSection`)
+- Repeated list/option rows → `OptionRow` / `<Item>Row`; text block within → `OptionText` / `TextBlock`
+- Labeled field group → `<Purpose>Field`; label row → `FieldLabel`; input row → `InputRow`
+- Close affordance → `CloseIcon`; other icon holders → `<Name>Icon`
+- Generic box with no clear role → `Container` (NEVER leave it `Frame 12345`)
+
+Duplicate names are fine in Figma (e.g. several `OptionText`). **Only rename renamable nodes** — skip anything
+inside an INSTANCE (component-internal, e.g. a locked `Frame 8559`); renaming would require detaching and
+break the instance. Detect junk with `/^Frame\s*\d{3,}$/i` and filter out nodes with an INSTANCE ancestor.
+Renaming is metadata-only — zero visual change, no screenshot needed.
+
+## Foreign/legacy `Button` remap + button-key correction
+
+- **Correct button-text-outlined SET key: `8bca05e1b891e901fdded9f7dc7a3fcc97680be1`** (the previously-noted
+  `733f50c1...` is STALE / not found — don't use it). Filled `c631c692daf669a7b9ea64a0d66adf65b3071f91` still
+  valid. When in doubt, read the key off an existing on-system instance:
+  `(await inst.getMainComponentAsync()).parent.key`.
+- **Legacy `Button` component** (remote, set name just `Button`, variants `Size=Large/…, Type=Primary/Secondary,
+  State=…`, text prop `Button Text#…`) is FOREIGN — remap: `Type=Primary`→`button-text-filled`,
+  `Type=Secondary`→`button-text-outlined`, `Size=Large`→DS `Size=Default` (48px). Build a fresh DS instance
+  (don't swapComponent — props don't carry), set the DS text prop (the one TEXT-type key), match width
+  (FILL for full-width), remove the legacy one.
+- **GOTCHA — DS button variants ship with left+right icons VISIBLE by default.** A freshly created
+  `button-text-*` instance shows `←`/`→` arrows. Hide them: set both `[L] Icon Show#352:0` and
+  `[R] Icon Show#352:11` to `false` (match the original, which usually has no icons). Always screenshot after
+  a button build — the arrows are easy to miss.
+- `Elements/Separator Line` (foreign) → DS **Horizontal Divider** (set `f625355b403d67b322328ba92c5b04a4e2db12a9`,
+  variant `Tickness=1, Color=Black`). A header/brand **logo** component (`Primary`, `Logo=Blue-Black`) is not
+  foreign junk — leave it.
+
+## De-absolute a centered title in a title bar (back-link | title | close)
+
+A common "header" pattern: a HORIZONTAL row with TWO equal growing halves (left half holds a back-link,
+right half holds a right-aligned close-X) and the **title floats ABSOLUTE, centered on top**. The absolute is
+a legit centering trick (auto-layout can't center a middle item when the side items differ in width) — but to
+de-absolute it while KEEPING it centered: **insert the title in-flow BETWEEN the two growing halves** (at the
+index right after the first half), set `layoutPositioning="AUTO"`, `layoutGrow=0`. Because both halves grow
+equally, they split the remaining width evenly and the fixed-width title lands dead-center. Detect it as an
+ABSOLUTE child of a HORIZONTAL row that has ≥2 siblings with `layoutGrow>0`. Zero visual change — verify with a
+screenshot. (Applied to Add-money form title bars 339:22062/22226/21625.)
+
+Note: title bars built as a balanced 3-item row `[half | title | half]` are ALREADY in-flow-centered — leave them.
+
+## Close/X icon → DS `close`, and swapping masked raw icons at the Icon-frame level
+
+- **DS close icon component key: `8f36ed657a636060467874480d13e70ab98719f2`** (name `close`, renders an X).
+  There's also a `x` icon component used inside some field/search components. For a modal/screen dismiss ✕, use
+  `close`.
+- **Raw icons in these mocks are masked graphics**: `Text(24) › Icon(24, NONE) › Mask group › Group › Vector`.
+  Do NOT swap the inner Vector (mask/positioning is lost). Instead swap at the **`Icon`-frame level**: create the
+  DS icon instance, `appendChild` it to the `Icon` frame, `layoutPositioning="ABSOLUTE"`, `x=0,y=0`,
+  `resize(24,24)`, then remove the old `Mask group` sibling(s). Position/size are preserved because the `Icon`
+  frame's own placement in its parent is untouched. DS `close` ships dark (icon/default) — matches the typical
+  ✕, no recolor needed.
+- **Identify the dismiss ✕ specifically** (not back-chevrons, dropdown carets, or amount clear-×): it's the
+  rightmost `Icon` frame in the title-bar/modal-header row. Back-chevron sits in the left half; clear-× lives in
+  the amount field body. Swap only the close unless asked for all icons.
+
+## FIX — leading-icon recipe: hide the Emoji FRAME, not the flag text
+
+When adding a leading icon via the country slot (`Country Show=true` → `Frame 4 › Frame 1`), hiding only the
+`🇺🇸` TEXT node leaves its parent **`Emoji` frame** (~16px wide) in the auto-layout, which adds a phantom gap
+and throws off the leading-icon/value spacing. **Hide the `Emoji` frame itself** (`emojiFrame.visible=false`),
+found by walking up from the `🇺🇸` text to the ancestor named `Emoji`. Also hide the `Vertical Divider`. Then
+the swapped leading icon (mail/info/etc.) sits flush with correct spacing. (Corrected on 561:53, 524:188.)
