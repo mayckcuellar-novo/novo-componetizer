@@ -80,6 +80,16 @@ figma-componetizer/                    ← the plugin
 Versions track `figma-componetizer/.claude-plugin/plugin.json`. Update to the latest with
 `/plugin marketplace update novo-figma`.
 
+### 1.3.2 — 2026-07-15
+
+- **Iconography parity** — `chevron-*` and `angle-*` are different glyphs; Novo mocks use `chevron-*`
+  for back/section/account carets. Don't grab the first search hit — confirm the glyph (vs a conformed
+  sibling or by screenshot) or FLAG. Added confirmed chevron/arrow/wallet icon keys.
+- **Text styles** — clarified they're step 2 (mandatory, colors+typography FIRST); `search_design_system`
+  returns no styles, so use the cheat-sheet keys.
+- **Definition of Done** — a completeness audit (text styles/colors bound, 0 raw buttons, 0 unflagged raw
+  icons, screenshot parity incl. every swapped icon) must pass before a frame is called conformed.
+
 ### 1.3.1 — 2026-07-15
 
 - **Circular icon buttons** — distinguish `button-coin` (has an **outlined** variant — bordered

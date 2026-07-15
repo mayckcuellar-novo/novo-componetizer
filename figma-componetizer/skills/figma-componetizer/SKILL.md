@@ -33,7 +33,7 @@ The DS keys/recipes here drift when the Novo DS changes, so on the **first** com
 in a conversation (skip on subsequent ones), do a quick, non-blocking version check:
 
 1. `WebFetch` `https://raw.githubusercontent.com/mayckcuellar-novo/novo-componetizer/main/figma-componetizer/.claude-plugin/plugin.json` and read its `version`.
-2. Compare it to **this skill's version: `1.3.1`** (kept in sync with `plugin.json` at every release).
+2. Compare it to **this skill's version: `1.3.2`** (kept in sync with `plugin.json` at every release).
 3. If the remote version is **higher**, tell the user once, in one line, then proceed anyway:
    > ℹ️ A newer figma-componetizer is available (v1.2.0 → v`X.Y.Z`). Run `/plugin marketplace update novo-figma` in the Claude Code CLI to update.
 4. If the fetch fails, times out, or versions match — say nothing and proceed with the bundled version.
@@ -147,8 +147,12 @@ pages have **different** node ids; confirm you're on the intended frame.
    (frames named "Icon", small single-color vector groups): section `›` chevrons, carousel `‹ ›` arrows, info `ⓘ`,
    `⋯` menus, trend/diagonal arrows, date-chip `calendar` glyphs, dropdown carets, etc. — they're easy to overlook
    inside cards/widgets. For each: swap to its DS icon component AND bind its vector fill to the matching icon-color
-   token (`icon/default`/`grey`/`info`/`success`/`white`). Swap a raw icon → its DS icon component **only when the match is exact**. A raw icon is usually a
-   wrapper frame (often auto-layout, named "Text"/"Icon") containing Icon › Mask group › Group › Vector —
+   token (`icon/default`/`grey`/`info`/`success`/`white`). Swap a raw icon → its DS icon component **only when the match is exact**. **Beware look-alike families —
+   `chevron-*` vs `angle-*` are different glyphs**; Novo mocks use `chevron-left/right/down` for back links,
+   section carets, and the account dropdown — do NOT substitute `angle-*` (a real parity break). Don't just
+   `search_design_system` and grab the first plausible name; confirm the glyph against a conformed sibling or by
+   screenshot-comparing candidate vs original. When unsure between two families, FLAG — don't guess. A raw icon
+   is usually a wrapper frame (often auto-layout, named "Text"/"Icon") containing Icon › Mask group › Group › Vector —
    createInstance, insert at the inner icon's index, resize 24, remove the old graphic. **Do NOT swap icons that are
    raw vectors inside a "Mask group" / masked vector group, or whose position is set by a parent mask** — replacing
    them mispositions the instance (the mask/positioning is lost). Flag those and leave raw. **Then fix the color:**
@@ -176,8 +180,13 @@ pages have **different** node ids; confirm you're on the intended frame.
      when taller components go in — set that frame's `layoutSizingVertical = 'HUG'` so padding stays symmetric.
    - Restore collapsed gaps via the parent's `itemSpacing`. Keep spacing on the **8-grid (8/16/24/32/40)**
      while staying faithful to the original; leave original valid micro-dims (2/4/6/10/12) alone.
-9. **Verify.** Screenshot after each phase. For tall scrollable content, use `get_screenshot` with a larger
-   `maxDimension` (isolated `node.screenshot()` on deep nodes can render blank — not a real error).
+9. **Verify + Definition of Done (never skip).** Screenshot after each phase. For tall scrollable content, use
+   `get_screenshot` with a larger `maxDimension` (isolated `node.screenshot()` on deep nodes can render blank — not
+   a real error). **A frame is NOT done just because buttons were swapped.** Before declaring it conformed, run the
+   completeness audit in the cheatsheet ("Definition of Done") on the frame (excluding the nav) and REPORT the counts:
+   text styles bound = all, text-color bound = all, raw `Button` frames = 0, raw `Icon` frames outside nav = 0 (or
+   flagged), and screenshot parity confirmed incl. a close look at every swapped icon. If any count is non-zero and
+   un-flagged, keep working — don't say "done."
 10. **Nomenclature & structure hygiene** (always, on every conform). See the cheatsheet sections
     "Layer nomenclature convention", "Structure: which absolutes to FIX vs LEAVE", and "Close-X placement".
     Key points:

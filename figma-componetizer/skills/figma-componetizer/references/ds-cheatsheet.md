@@ -677,3 +677,39 @@ inst.setProperties({ [iconSwapKey]: ic.id });   // ic.id, not ICON_KEY
 
 Icon keys picked up here: `plus` `fc6d9d0f8a398714c7bda1daf24cf5fb964a4aae`, `gift`
 `1d0b4ca41c11f0c9830f3e8e666eb8316c527ec5`.
+
+## Iconography PARITY — chevron ≠ angle (look-alike families); screenshot-compare EVERY swap
+
+The DS ships BOTH a `chevron-*` and an `angle-*` family — they look similar but are NOT the same glyph.
+**Novo mocks use `chevron-left/right/down` for back links, section carets, dropdown/account carets** — NEVER
+substitute `angle-*` (that visibly changes the icon; a real parity break flagged in QA). When a raw icon needs
+swapping, do NOT just `search_design_system` and grab the first plausible name — **confirm the exact glyph**:
+either match the family already used on conformed sibling screens, or screenshot the candidate DS icon and the
+original and compare. If two families are plausible and you can't confirm, FLAG it, don't guess.
+
+Confirmed icon keys: `chevron-left` `6c6ab500bc83c17a6d49b52d96ac67e0f5a4710e`, `chevron-down`
+`aa1806a467effddc1e500b67874a8ced46cb9174`, `chevron-right` `7fcb838fc4adbc656e531933239741a877542654`,
+`arrow-bottom-left` `bfccace10df22fe814df9ee5a2d8d1c2e20d1a52`, `wallet`
+`65724397e72d2463c81a096b9717483d7346610d`, `plus` `fc6d9d0f8a398714c7bda1daf24cf5fb964a4aae`, `gift`
+`1d0b4ca41c11f0c9830f3e8e666eb8316c527ec5`. (`angle-*` exist too — do not use them where a chevron is meant.)
+
+## Text styles: keys are in this cheat sheet — do NOT rely on search_design_system
+
+`search_design_system(includeStyles:true)` returns an EMPTY `styles:[]` for this library — text styles are not
+discoverable that way. Use the KEYS in the "Text styles" table above (verified valid: they resolve via
+`importStyleByKeyAsync` and match what conformed frames already use). Binding text styles is **step 2 and
+mandatory** — colors + typography come FIRST, before any component/icon work, on every conform.
+
+## Definition of Done — audit BEFORE declaring a frame conformed (never skip)
+
+A frame is NOT "componetized" just because the buttons were swapped. Before saying done, run a completeness
+audit on the frame (excluding the nav / `SideBarTabs`) and confirm ALL of:
+1. **Text styles**: every non-instance text has a bound DS `textStyleId` (unstyled count = 0).
+2. **Text colors**: every text fill is bound to a `typography/*` variable (unbound count = 0).
+3. **No raw `Button` frames** left; buttons/fields/selectors/radios are DS instances.
+4. **Raw icons** (`Icon` frames with a Mask group, outside the nav) = 0, OR each remaining one is explicitly
+   flagged as no-exact-match.
+5. **Screenshot parity** confirmed against the pre-change reference — including a close look at every swapped
+   icon (chevron vs angle, etc.).
+Report the audit counts. If any are non-zero and un-flagged, the frame is not done. (Lesson: buttons-only was
+reported as "done"; text styles/colors and correct icons were missing.)
