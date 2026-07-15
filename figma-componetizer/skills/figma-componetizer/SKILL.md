@@ -33,7 +33,7 @@ The DS keys/recipes here drift when the Novo DS changes, so on the **first** com
 in a conversation (skip on subsequent ones), do a quick, non-blocking version check:
 
 1. `WebFetch` `https://raw.githubusercontent.com/mayckcuellar-novo/novo-componetizer/main/figma-componetizer/.claude-plugin/plugin.json` and read its `version`.
-2. Compare it to **this skill's version: `1.2.0`** (kept in sync with `plugin.json` at every release).
+2. Compare it to **this skill's version: `1.3.0`** (kept in sync with `plugin.json` at every release).
 3. If the remote version is **higher**, tell the user once, in one line, then proceed anyway:
    > ℹ️ A newer figma-componetizer is available (v1.2.0 → v`X.Y.Z`). Run `/plugin marketplace update novo-figma` in the Claude Code CLI to update.
 4. If the fetch fails, times out, or versions match — say nothing and proceed with the bundled version.
@@ -104,10 +104,16 @@ pages have **different** node ids; confirm you're on the intended frame.
    `typography/info` (blue #3d44e3). (On many screens these are already bound — only touch unbound/foreign.)
 4. **Surfaces & borders.** white → `fill/default`, `#f4f4f4` → `fill/neutral`, `#f9f9f9` → `fill/light`,
    `#e2e1e1` strokes → `border/light`. Skip VECTOR (icon artwork) and instance-internal.
-5. **Buttons.** Swap raw `Button` frames → DS button by **label color & fill**:
-   - filled brand → `button-text-filled`; transparent+blue border → `button-text-outlined`;
-     **blue text, no border → `button-text`**; **dark/grey text, no border → `button-text-neutral`** (renders underlined).
-   - `black-4` fill (rgba 0,0,0,0.04) = **Disabled** state. Small pills (h≈28, 12px label) = `Size=Small`.
+5. **Buttons.** (Buttons merged into ONE set on 2026-07-15 — see the cheatsheet section
+   "BUTTONS MERGED INTO ONE SET".) Import the single **`button-text`** set
+   (`c631c692daf669a7b9ea64a0d66adf65b3071f91`) and pick the look via the `Variant` property —
+   do NOT use the old per-type keys (they're dead). Map raw `Button` frames by **label color & fill**:
+   - filled brand → `Variant=filled`; transparent+blue border → `Variant=outlined`; grey/dark border →
+     `Variant=outlined-neutral`; red border → `Variant=outlined-destructive`; **blue text, no border →
+     `Variant=basic`**; **dark/grey text, no border → `Variant=basic-neutral`**; red text → `basic-destructive`;
+     on a dark background → the `*-inverse` variants.
+   - `Size` is `Regular` (default) / `Small`; `State` is `Resting`/`Hover`/`Pressed`/`Focus`/`Disabled`.
+     `black-4` fill (rgba 0,0,0,0.04) = `State=Disabled`. Small pills (h≈28, 12px label) = `Size=Small`.
    - Preserve label (`Copy#…` text prop), icons (`[L]/[R] Icon Show` + `[L]/[R] Icon` instance-swap),
      parent/index, and width (HUG, FILL, or fixed). Read prop keys dynamically from `inst.componentProperties`.
    - **Decide by the link's ACTUAL displayed text color — resolve bound variables, don't trust a stale literal fill.**

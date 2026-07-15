@@ -80,6 +80,14 @@ figma-componetizer/                    ← the plugin
 Versions track `figma-componetizer/.claude-plugin/plugin.json`. Update to the latest with
 `/plugin marketplace update novo-figma`.
 
+### 1.3.0 — 2026-07-15
+
+- **Buttons merged into one set** — the Novo DS collapsed the separate button sets
+  (`button-text-filled`/`-outlined`/`-neutral`/`button-text`/destructive…) into a single
+  `button-text` set (90 variants) driven by `Variant` × `Size` × `State`. Skill updated to import
+  the one set and pick a `Variant` (old per-type keys are dead; `Size=Default` → `Size=Regular`).
+  Already-placed instances auto-migrated on the library update, so prior work didn't break.
+
 ### 1.2.0 — 2026-07-14
 
 - **Freshness check** — on the first componetize per conversation the skill fetches this repo's

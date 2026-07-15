@@ -618,3 +618,39 @@ When adding a leading icon via the country slot (`Country Show=true` → `Frame 
 and throws off the leading-icon/value spacing. **Hide the `Emoji` frame itself** (`emojiFrame.visible=false`),
 found by walking up from the `🇺🇸` text to the ancestor named `Emoji`. Also hide the `Vertical Divider`. Then
 the swapped leading icon (mail/info/etc.) sits flush with correct spacing. (Corrected on 561:53, 524:188.)
+
+## ⚠️ BUTTONS MERGED INTO ONE SET (2026-07-15) — supersedes all per-type button keys
+
+The Novo DS collapsed the separate button component sets into a SINGLE set **`button-text`**
+(set key **`c631c692daf669a7b9ea64a0d66adf65b3071f91`** — the old filled key, now the whole set;
+90 variants). Pick the look via variant properties, not separate keys.
+
+**DEAD keys (removed — do NOT use):** button-text-outlined `8bca05e1…` and `733f50c1…`,
+button-text (link) `590b7fd8…`, button-text-neutral `9fdbef86…`, outlined-destructive `1dbeb880…`,
+outlined-neutral `9fdbef86…`. Import `button-text` (c631c692…) and set variants instead.
+
+**Variant props on `button-text`:**
+- `Variant`: `filled` · `outlined` · `outlined-neutral` · `outlined-inverse` · `outlined-destructive`
+  · `basic` · `basic-neutral` · `basic-inverse` · `basic-destructive`
+- `Size`: `Regular` (was "Default") · `Small`
+- `State`: `Resting` · `Hover` · `Pressed` · `Focus` · `Disabled`
+- Also `Copy` (TEXT, the label), `[L] Icon Show#352:0` / `[R] Icon Show#352:11` (BOTH default **true** —
+  hide unless the mock shows them), `[L] Icon#352:22` / `[R] Icon#352:33` (INSTANCE_SWAP).
+
+**Old→new mapping:** filled→`Variant=filled`; blue-border outlined→`outlined`; grey/dark-border→
+`outlined-neutral`; red-border→`outlined-destructive`; blue borderless text-link→`basic`;
+dark/neutral borderless→`basic-neutral`; red text→`basic-destructive`; on dark bg→`*-inverse`.
+
+**Swap recipe (new):**
+```js
+const set = await figma.importComponentSetByKeyAsync("c631c692daf669a7b9ea64a0d66adf65b3071f91");
+const v = set.children.find(c => c.name === "Variant=filled, Size=Regular, State=Resting"); // or match by props
+const b = v.createInstance();
+b.setProperties({ "Copy#366:0": label, "[L] Icon Show#352:0": false, "[R] Icon Show#352:11": false });
+// disabled state → pick State=Disabled variant; small pill → Size=Small
+```
+`black-4` fill (rgba 0,0,0,.04) = `State=Disabled`; small pill (h≈28/12px label) = `Size=Small`.
+
+**Existing instances auto-migrated** on the library update (old Size=Default → Size=Regular, filled→
+Variant=filled), so previously-conformed frames did NOT break — no rework needed. `button-icon`,
+`button-coin*` remain separate sets (unaffected).
