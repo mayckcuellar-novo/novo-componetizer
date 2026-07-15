@@ -713,3 +713,19 @@ audit on the frame (excluding the nav / `SideBarTabs`) and confirm ALL of:
    icon (chevron vs angle, etc.).
 Report the audit counts. If any are non-zero and un-flagged, the frame is not done. (Lesson: buttons-only was
 reported as "done"; text styles/colors and correct icons were missing.)
+
+## Definition of Done — ADDENDUM: surfaces, borders, dividers are part of it (not optional)
+
+The "no raw values" purpose means the DoD audit MUST also confirm (excluding nav/instances):
+- **Surface fills bound = 0 raw**: every non-text/non-vector frame's visible SOLID fill is bound — white →
+  `color/fill/default` (`8e7991f37a7d39d9a2e401f0b5ba5279cc05e1f6`), `#f4f4f4` → `color/fill/neutral`
+  (`a596560f5246e4e4a78f807ab9fce9c8bb4a984a`), `#f9f9f9` → `color/fill/light`
+  (`211d1e835421743a45d0eb00bb5f8d5119a880ef`).
+- **Strokes bound = 0 raw**: `#e2e1e1` (and legacy `#e7e8eb`) borders → `color/border/light`
+  (`10f1a70bcc32631a2a63634134037985e27efeed`). Bind via `setBoundVariableForPaint` on the STROKE paint.
+- **Dividers tokenized**: thin line frames (h≤2 / named `Divider`, black @12%) → fill bound to
+  `color/border/divider` (`b75fb2f3952e610cdece8e02737aaadd24d7fbac`).
+Detect raw fills/strokes by: a visible SOLID paint with no matching entry in `node.boundVariables.fills` /
+`.strokes`. Skip VECTOR (icon artwork) and instance-internal. (Lesson: a frame was called "done" with 3 raw
+`#e2e1e1` card strokes, 7 raw white surface fills, and an untokenized divider — exactly the raw values the
+componetizer exists to remove.)

@@ -33,7 +33,7 @@ The DS keys/recipes here drift when the Novo DS changes, so on the **first** com
 in a conversation (skip on subsequent ones), do a quick, non-blocking version check:
 
 1. `WebFetch` `https://raw.githubusercontent.com/mayckcuellar-novo/novo-componetizer/main/figma-componetizer/.claude-plugin/plugin.json` and read its `version`.
-2. Compare it to **this skill's version: `1.3.2`** (kept in sync with `plugin.json` at every release).
+2. Compare it to **this skill's version: `1.3.3`** (kept in sync with `plugin.json` at every release).
 3. If the remote version is **higher**, tell the user once, in one line, then proceed anyway:
    > ℹ️ A newer figma-componetizer is available (v1.2.0 → v`X.Y.Z`). Run `/plugin marketplace update novo-figma` in the Claude Code CLI to update.
 4. If the fetch fails, times out, or versions match — say nothing and proceed with the bundled version.
@@ -184,8 +184,11 @@ pages have **different** node ids; confirm you're on the intended frame.
    `get_screenshot` with a larger `maxDimension` (isolated `node.screenshot()` on deep nodes can render blank — not
    a real error). **A frame is NOT done just because buttons were swapped.** Before declaring it conformed, run the
    completeness audit in the cheatsheet ("Definition of Done") on the frame (excluding the nav) and REPORT the counts:
-   text styles bound = all, text-color bound = all, raw `Button` frames = 0, raw `Icon` frames outside nav = 0 (or
-   flagged), and screenshot parity confirmed incl. a close look at every swapped icon. If any count is non-zero and
+   text styles bound = all, text-color bound = all, **unbound surface fills = 0** (white→`fill/default`,
+   greys→`fill/neutral`/`light`), **unbound strokes = 0** (`#e2e1e1`→`border/light`), **dividers tokenized**
+   (thin line fills → `border/divider`), raw `Button` frames = 0, raw `Icon` frames outside nav = 0 (or flagged),
+   and screenshot parity confirmed incl. a close look at every swapped icon. Steps 4 (surfaces & borders) and 7c
+   (dividers) are NOT optional — they are the core "no raw values" purpose. If any count is non-zero and
    un-flagged, keep working — don't say "done."
 10. **Nomenclature & structure hygiene** (always, on every conform). See the cheatsheet sections
     "Layer nomenclature convention", "Structure: which absolutes to FIX vs LEAVE", and "Close-X placement".

@@ -80,6 +80,13 @@ figma-componetizer/                    ← the plugin
 Versions track `figma-componetizer/.claude-plugin/plugin.json`. Update to the latest with
 `/plugin marketplace update novo-figma`.
 
+### 1.3.3 — 2026-07-15
+
+- **Surfaces/borders/dividers in Definition of Done** — the "no raw values" purpose now explicitly gates on
+  0 raw surface fills (→ `fill/default`/`neutral`/`light`), 0 raw strokes (`#e2e1e1` → `border/light`), and
+  dividers tokenized (→ `border/divider`). Steps 4 & 7c are not optional. (Caught a frame shipped with raw
+  card strokes, white fills, and an untokenized divider.)
+
 ### 1.3.2 — 2026-07-15
 
 - **Iconography parity** — `chevron-*` and `angle-*` are different glyphs; Novo mocks use `chevron-*`

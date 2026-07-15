@@ -1,7 +1,7 @@
 {
   "name": "figma-componetizer",
   "description": "Conform a Figma frame/screen/modal to the Novo Design System — bind DS text styles, color variables, and swap raw layers for DS component instances, without changing the visual design. Runs entirely in Figma via the Figma MCP.",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "author": {
     "name": "Novo Design"
   },
