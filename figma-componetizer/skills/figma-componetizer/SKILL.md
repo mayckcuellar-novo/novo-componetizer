@@ -27,6 +27,20 @@ This works in **any** file that has the Novo DS library enabled — everything i
 2. The `figma` MCP server must be authenticated. If tools aren't available, run the auth flow.
 3. For the full token taxonomy/naming, the `novo-design-system` skill is the deeper reference. The exact keys this skill needs are in [references/ds-cheatsheet.md](references/ds-cheatsheet.md) — read it before editing.
 
+## Freshness check (first componetize in a conversation only)
+
+The DS keys/recipes here drift when the Novo DS changes, so on the **first** componetize request
+in a conversation (skip on subsequent ones), do a quick, non-blocking version check:
+
+1. `WebFetch` `https://raw.githubusercontent.com/mayckcuellar-novo/novo-componetizer/main/figma-componetizer/.claude-plugin/plugin.json` and read its `version`.
+2. Compare it to **this skill's version: `1.2.0`** (kept in sync with `plugin.json` at every release).
+3. If the remote version is **higher**, tell the user once, in one line, then proceed anyway:
+   > ℹ️ A newer figma-componetizer is available (v1.2.0 → v`X.Y.Z`). Run `/plugin marketplace update novo-figma` in the Claude Code CLI to update.
+4. If the fetch fails, times out, or versions match — say nothing and proceed with the bundled version.
+
+Never block on this, and never try to self-update (Claude can't run `/plugin`); it's only a heads-up so
+keys don't silently go stale.
+
 ## Core principle — classify by SOURCE, then act
 
 For every node, decide one of three things. **"Already styled" does NOT mean skip** — first check which design system it comes from.

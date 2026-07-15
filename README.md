@@ -50,8 +50,19 @@ color + radius variables, swaps buttons / inputs / selectors / radios / checkbox
 
 `skills/figma-componetizer/references/ds-cheatsheet.md` holds the DS keys and gotchas. When
 the Novo DS team ships or renames components those keys drift — update the cheat sheet
-(find keys with the Figma MCP `search_design_system` tool), bump `version` in
-`.claude-plugin/plugin.json`, commit, and users pick it up via `/plugin marketplace update`.
+(find keys with the Figma MCP `search_design_system` tool) and cut a release.
+
+**Update nudge:** on the first componetize in a conversation the skill fetches this repo's
+`plugin.json` version and, if the installed copy is behind, prints a one-line heads-up with the
+`/plugin marketplace update novo-figma` command (it never blocks or self-updates — Claude can't
+run `/plugin`). So users get told when they're stale instead of having to remember to check.
+
+**Release checklist** (bump the version in BOTH places so the nudge compares correctly):
+1. Edit the cheat sheet / `SKILL.md`.
+2. Bump `version` in `figma-componetizer/.claude-plugin/plugin.json`.
+3. Bump the matching `this skill's version: X.Y.Z` line in `SKILL.md`'s *Freshness check* section.
+4. Add a dated entry to the Changelog below.
+5. Commit & push — users pick it up via `/plugin marketplace update novo-figma`.
 
 ## Repo layout
 
@@ -68,6 +79,12 @@ figma-componetizer/                    ← the plugin
 
 Versions track `figma-componetizer/.claude-plugin/plugin.json`. Update to the latest with
 `/plugin marketplace update novo-figma`.
+
+### 1.2.0 — 2026-07-14
+
+- **Freshness check** — on the first componetize per conversation the skill fetches this repo's
+  `plugin.json` version and nudges the user (one line) to `/plugin marketplace update` if the
+  installed copy is behind. Non-blocking; never self-updates.
 
 ### 1.1.0 — 2026-07-14
 
