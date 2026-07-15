@@ -77,6 +77,10 @@ figma-componetizer/                    ← the plugin
 
 ## Changelog
 
+### 1.3.4 — 2026-07-15
+
+- **Dividers use the DS component** — corrected a wrong instruction that claimed dividers have no DS component. Thin divider lines are now SWAPPED to the DS `Horizontal Divider` instance (Tickness=1, Color=Black), not merely fill-bound to `color/border/divider`.
+
 Versions track `figma-componetizer/.claude-plugin/plugin.json`. Update to the latest with
 `/plugin marketplace update novo-figma`.
 

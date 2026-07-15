@@ -33,7 +33,7 @@ The DS keys/recipes here drift when the Novo DS changes, so on the **first** com
 in a conversation (skip on subsequent ones), do a quick, non-blocking version check:
 
 1. `WebFetch` `https://raw.githubusercontent.com/mayckcuellar-novo/novo-componetizer/main/figma-componetizer/.claude-plugin/plugin.json` and read its `version`.
-2. Compare it to **this skill's version: `1.3.3`** (kept in sync with `plugin.json` at every release).
+2. Compare it to **this skill's version: `1.3.4`** (kept in sync with `plugin.json` at every release).
 3. If the remote version is **higher**, tell the user once, in one line, then proceed anyway:
    > ℹ️ A newer figma-componetizer is available (v1.2.0 → v`X.Y.Z`). Run `/plugin marketplace update novo-figma` in the Claude Code CLI to update.
 4. If the fetch fails, times out, or versions match — say nothing and proceed with the bundled version.
@@ -163,11 +163,12 @@ pages have **different** node ids; confirm you're on the intended frame.
    are real DS icons (e.g. `check`); classify and swap them, don't dismiss small icons as artwork.
    **DS components drop mock embellishments** — e.g. `password-field` has a show/hide eye but NO lock prefix.
    Don't recreate the dropped extras; flag the minor deviation.
-7c. **Dividers.** Plain gray divider lines (thin frames, black @12% = `color/border/divider`) have **no DS
-   component** (only the tokens `color/border/divider` + `dividers/border-width`). To "componetize" them: create a
-   local `Divider` component from one line (`figma.createComponentFromNode`), bind its fill to `color/border/divider`,
-   then replace the other divider frames with instances (FILL width). If the user only wants them on-token, just bind
-   each frame's fill to `color/border/divider`.
+7c. **Dividers — swap to the DS component (there IS one).** Plain gray divider lines (thin frames ~1px, black
+   @12%) → replace with the DS **`Horizontal Divider`** instance (set key `f625355b403d67b322328ba92c5b04a4e2db12a9`,
+   variant **`Tickness=1, Color=Black`** — note the misspelled "Tickness"; other variants `Tickness=1/2 × Black/White`),
+   FILL width, same parent/index; remove the raw frame. Vertical lines → **`Vertical Divider`**
+   (`fcd6d7a218403a0e4c34c40d55102a3abc4a61af`). Do NOT create a local component and do NOT stop at binding the
+   `color/border/divider` token — the actual DS component must be used (tokenizing the fill alone is NOT done).
 
 7b. **Corner radius → DS variables.** Inventory raw corner radii and bind each to the `dim/radii/N` scale
    (4/8/12/16/20/24/32) via `setBoundVariable` on the four corner fields (uniform → all four; mixed top-corners →

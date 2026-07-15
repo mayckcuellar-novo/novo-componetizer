@@ -723,8 +723,10 @@ The "no raw values" purpose means the DoD audit MUST also confirm (excluding nav
   (`211d1e835421743a45d0eb00bb5f8d5119a880ef`).
 - **Strokes bound = 0 raw**: `#e2e1e1` (and legacy `#e7e8eb`) borders → `color/border/light`
   (`10f1a70bcc32631a2a63634134037985e27efeed`). Bind via `setBoundVariableForPaint` on the STROKE paint.
-- **Dividers tokenized**: thin line frames (h≤2 / named `Divider`, black @12%) → fill bound to
-  `color/border/divider` (`b75fb2f3952e610cdece8e02737aaadd24d7fbac`).
+- **Dividers = DS component (not just a token)**: thin line frames (h≤2 / named `Divider`) must be SWAPPED to
+  the DS `Horizontal Divider` instance (`f625355b403d67b322328ba92c5b04a4e2db12a9`, `Tickness=1, Color=Black`),
+  FILL width — NOT merely fill-bound to `color/border/divider`. Vertical → `Vertical Divider`
+  (`fcd6d7a218403a0e4c34c40d55102a3abc4a61af`).
 Detect raw fills/strokes by: a visible SOLID paint with no matching entry in `node.boundVariables.fills` /
 `.strokes`. Skip VECTOR (icon artwork) and instance-internal. (Lesson: a frame was called "done" with 3 raw
 `#e2e1e1` card strokes, 7 raw white surface fills, and an untokenized divider — exactly the raw values the
