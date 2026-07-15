@@ -63,3 +63,34 @@ figma-componetizer/                    ← the plugin
     SKILL.md
     references/ds-cheatsheet.md
 ```
+
+## Changelog
+
+Versions track `figma-componetizer/.claude-plugin/plugin.json`. Update to the latest with
+`/plugin marketplace update novo-figma`.
+
+### 1.1.0 — 2026-07-14
+
+Recipes hardened against real conform passes (Payments + Account-info flows):
+
+- **Structure** — rules for which absolute frames to FIX (floating AppHeader / absolute
+  content over a skeleton / absolute centered titles) vs LEAVE (scrims, overlay
+  drawers/modals, pinned close-X, DS-component-internal absolutes); dead-scrim removal.
+- **Close-X** — place in-flow at the end of the `ModalHeader` title row when a header exists;
+  float (corner-pinned) only when there's none. Centered-title de-absolute technique.
+- **Nomenclature** — rename junk `Frame <n>` layers to role-based PascalCase; skip
+  instance-internal nodes.
+- **Fields** — `text-field` / `text-area` / `selector` / `phone-number-field` via the nested
+  `Parent Input`; `Input` variant is `Empty`/`Filled` only; character counter needs
+  `Bottom info=true`; leading icon via the country slot — hide the **Emoji frame** (not just
+  the flag glyph) + the Vertical Divider to fix spacing.
+- **Buttons/icons** — foreign/legacy `Button` remap; DS buttons ship with left/right icons
+  visible (hide them); corrected `button-text-outlined` key; DS `close` icon key +
+  Icon-frame-level swap for masked raw icons.
+
+### 1.0.0 — 2026-07-10
+
+Initial release — DS conformance skill packaged as a Claude Code plugin marketplace
+(`SKILL.md` + `references/ds-cheatsheet.md`): classify layers by source, bind text styles /
+color + radius variables, swap buttons / inputs / selectors / radios / checkboxes / icons /
+dividers while preserving layout, copy, and spacing.
